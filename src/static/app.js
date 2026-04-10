@@ -572,7 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
           📤 Share
         </button>
       </div>
-      <div class="share-menu hidden" id="share-menu-${name.replace(/\s+/g, '-')}">
+      <div class="share-menu hidden">
         <button class="share-option" data-type="copy" data-activity="${name}">🔗 Copy Link</button>
         <a class="share-option share-link" data-type="whatsapp" href="#" target="_blank" rel="noopener noreferrer" data-activity="${name}">💬 WhatsApp</a>
         <a class="share-option share-link" data-type="facebook" href="#" target="_blank" rel="noopener noreferrer" data-activity="${name}">👍 Facebook</a>
@@ -599,10 +599,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add click handler for the share button
     const shareButton = activityCard.querySelector(".share-button");
     const shareMenu = activityCard.querySelector(".share-menu");
+    const activityUrl = `${window.location.origin}${window.location.pathname}?activity=${encodeURIComponent(name)}`;
+    const shareText = `Check out this activity at Mergington High School: ${name} — ${details.description}`;
+
     shareButton.addEventListener("click", (event) => {
       event.stopPropagation();
-      const activityUrl = `${window.location.origin}${window.location.pathname}?activity=${encodeURIComponent(name)}`;
-      const shareText = `Check out this activity at Mergington High School: ${name} — ${details.description}`;
 
       // Use native Web Share API if available (mobile/modern browsers)
       if (navigator.share) {
@@ -630,7 +631,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Handle copy link button
     const copyButton = shareMenu.querySelector('[data-type="copy"]');
     copyButton.addEventListener("click", () => {
-      const activityUrl = `${window.location.origin}${window.location.pathname}?activity=${encodeURIComponent(name)}`;
       navigator.clipboard.writeText(activityUrl).then(() => {
         copyButton.textContent = "✅ Copied!";
         setTimeout(() => { copyButton.textContent = "🔗 Copy Link"; }, 2000);
