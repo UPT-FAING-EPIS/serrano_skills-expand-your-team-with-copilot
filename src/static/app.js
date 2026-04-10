@@ -568,6 +568,15 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `
         }
+        <button class="share-button" data-activity="${name}" aria-label="Share this activity">
+          📤 Share
+        </button>
+      </div>
+      <div class="share-menu hidden">
+        <button class="share-option" data-type="copy" data-activity="${name}">🔗 Copy Link</button>
+        <a class="share-option share-link" data-type="whatsapp" href="#" target="_blank" rel="noopener noreferrer" data-activity="${name}">💬 WhatsApp</a>
+        <a class="share-option share-link" data-type="facebook" href="#" target="_blank" rel="noopener noreferrer" data-activity="${name}">👍 Facebook</a>
+        <a class="share-option share-link" data-type="twitter" href="#" target="_blank" rel="noopener noreferrer" data-activity="${name}">🐦 X / Twitter</a>
       </div>
     `;
 
@@ -587,6 +596,58 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Add click handler for the share button
+    const shareButton = activityCard.querySelector(".share-button");
+    const shareMenu = activityCard.querySelector(".share-menu");
+    const activityUrl = `${window.location.origin}${window.location.pathname}?activity=${encodeURIComponent(name)}`;
+    const shareText = `Check out this activity at Mergington High School: ${name} — ${details.description}`;
+
+    shareButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      // Use native Web Share API if available (mobile/modern browsers)
+      if (navigator.share) {
+        navigator.share({ title: name, text: shareText, url: activityUrl }).catch(() => {});
+        return;
+      }
+
+      // Otherwise toggle the fallback share menu
+      // Close any other open share menus first
+      document.querySelectorAll(".share-menu:not(.hidden)").forEach((menu) => {
+        if (menu !== shareMenu) menu.classList.add("hidden");
+      });
+      shareMenu.classList.toggle("hidden");
+
+      // Update the social network links with the current URL and text
+      const whatsappLink = shareMenu.querySelector('[data-type="whatsapp"]');
+      const facebookLink = shareMenu.querySelector('[data-type="facebook"]');
+      const twitterLink = shareMenu.querySelector('[data-type="twitter"]');
+
+      whatsappLink.href = `https://wa.me/?text=${encodeURIComponent(shareText + " " + activityUrl)}`;
+      facebookLink.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(activityUrl)}`;
+      twitterLink.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(activityUrl)}`;
+    });
+
+    // Handle copy link button
+    const copyButton = shareMenu.querySelector('[data-type="copy"]');
+    copyButton.addEventListener("click", () => {
+      navigator.clipboard.writeText(activityUrl).then(() => {
+        copyButton.textContent = "✅ Copied!";
+        setTimeout(() => { copyButton.textContent = "🔗 Copy Link"; }, 2000);
+      }).catch(() => {
+        // Fallback for older browsers
+        const tempInput = document.createElement("input");
+        tempInput.value = activityUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        copyButton.textContent = "✅ Copied!";
+        setTimeout(() => { copyButton.textContent = "🔗 Copy Link"; }, 2000);
+      });
+      shareMenu.classList.add("hidden");
+    });
+
     activitiesList.appendChild(activityCard);
   }
 
@@ -594,6 +655,13 @@ document.addEventListener("DOMContentLoaded", () => {
   searchInput.addEventListener("input", (event) => {
     searchQuery = event.target.value;
     displayFilteredActivities();
+  });
+
+  // Close share menus when clicking outside of them
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".share-menu:not(.hidden)").forEach((menu) => {
+      menu.classList.add("hidden");
+    });
   });
 
   searchButton.addEventListener("click", (event) => {
